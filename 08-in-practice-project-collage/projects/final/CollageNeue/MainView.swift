@@ -4,6 +4,7 @@ import Combine
 struct MainView: View {
   @EnvironmentObject var modelSubject: CollageNeueModel
   
+  // ViewState, 不应在 Model 中进行存储, 直接在 View 中使用 @State 的方式进行数据的存储.
   @State private var isDisplayingSavedMessage = false
   
   @State private var lastErrorMessage = "" {
@@ -40,11 +41,13 @@ struct MainView: View {
       .padding(.bottom)
       .padding(.bottom)
       
+      // View 绑定了 ViewModel 的 Publsiher, ViewModel 的数据改变会触发 View 的改变.
       Image(uiImage: modelSubject.imagePreview ?? UIImage())
         .resizable()
         .frame(height: 200, alignment: .center)
         .border(Color.gray, width: 2)
       
+      // ViewAction 会触发 ViewModel 的 modelAction
       Button(action: modelSubject.clear, label: {
         Text("Clear")
           .fontWeight(.bold)
@@ -64,10 +67,12 @@ struct MainView: View {
       
     }
     .padding()
+    // lastSavedPhotoID 并不是 @Published, 不知道里面怎么进行的体现.
     .onChange(of: modelSubject.lastSavedPhotoID, perform: { lastSavedPhotoID in
       isDisplayingSavedMessage = true
     })
-    .alert("Saved photo with id: \(modelSubject.lastSavedPhotoID)", isPresented: $isDisplayingSavedMessage, actions: { })
+    .alert("Saved photo with id: \(modelSubject.lastSavedPhotoID)",
+           isPresented: $isDisplayingSavedMessage, actions: { })
     .alert(lastErrorMessage, isPresented: $isDisplayingErrorMessage, actions: { })
     .sheet(isPresented: $isDisplayingPhotoPicker, onDismiss: {
       

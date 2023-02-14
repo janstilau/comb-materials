@@ -35,7 +35,7 @@ example(of: "Subscriber") {
     let myNotification = Notification.Name("MyNotification")
     let center = NotificationCenter.default
     
-    // 在里面, 进行了 NotificationCenter handle 逻辑的包装. 
+    // 在内部, 进行了对于 NotificationCenter 的监听包装, 在有 Subscriber 来临的时候, 内部添加对于通知的监听, 监听回调就是将数据发送给后续的节点. 
     let publisher = center.publisher(for: myNotification, object: nil)
     
     // 1
@@ -74,6 +74,8 @@ example(of: "Just") {
             receiveValue: {
                 print("Received value (another)", $0)
             })
+
+    // 并不需要进行 cancel, 这是因为 Just 在收到下游注册之后, 立马就把自己的数据发送出去, 并且发送 Completion 事件.
 }
 
 example(of: "assign(to:on:)") {
@@ -92,7 +94,8 @@ example(of: "assign(to:on:)") {
     // 3
     let publisher = ["Hello", "world!"].publisher
     
-    // 4
+    // 不同的就是 Subscriber 的区别. 在 value 到达之后, 是调用了 object.value = value 的赋值操作. 
+    // 类似于 setvalueForKey, 不过在 Swfit 里面, 使用 keypath 有着更加编译器安全的效果.
     _ = publisher
         .assign(to: \.value, on: object)
 }
@@ -113,6 +116,8 @@ example(of: "assign(to:)") {
         }
     
     // 3
+    // 这个 assign to 是不同的效果.
+    // 在里面, 会有对于 publisher 内部存储的 subject 相关方法的调用. 
     (0..<10).publisher
         .assign(to: &object.$value)
 }
@@ -128,24 +133,27 @@ example(of: "Custom Subscriber") {
         typealias Input = Int
         typealias Failure = Never
         
-        // 4
+        //  receive(subscription 应该做两件事, 1. 上游 Subscription 内存管理, 2. 上游 Subscription demand 请求.
         func receive(subscription: Subscription) {
             // 在接收到 Subscription 的时候, 向 Subscription 请求 demand 的量
             subscription.request(.max(3))
         }
         
-        // 5
+        // receive(_ input: Int) 应该做两件事, 1. 进行 input 的业务处理, operator 传递 transform 后的数据到后面的节点.
+        // 2. 返回自身的 demand 要求, 进行上游的压力管理. 
         func receive(_ input: Int) -> Subscribers.Demand {
             // 在接受到数据之后, 返回最新需要的 Demand 的量. 
             print("Received value", input)
             return .none
         }
         
-        // 6
+        //
         func receive(completion: Subscribers.Completion<Never>) {
             // 对于终点来说, 其实是不需要接收到结束事件的时候, 进行其他的状态维护的. 
             print("Received completion", completion)
         }
+
+        // Cancel 应该 1. 内存管理. 2 调用存储的 Subscription, 进行 cancle 的调用. 
     }
     
     let subscriber = IntSubscriber()
@@ -154,6 +162,7 @@ example(of: "Custom Subscriber") {
 }
 
 /*
+对于 Future 的使用, Future 就当做 Promise 来进行理解就可以了. 
  example(of: "Future") {
  func futureIncrement(
  integer: Int,
@@ -184,6 +193,11 @@ example(of: "Custom Subscriber") {
  }
  */
 
+/*
+Subject
+  1. 可以进行 Share 语义的实现. 
+  1. 可以由业务逻辑进行信号发送的触发. 
+*/
 example(of: "PassthroughSubject") { 
     // 1
     enum MyError: Error {
@@ -282,9 +296,9 @@ example(of: "Dynamically adjusting Demand") {
             subscription.request(.max(2))
         }
         
+        // 自定义 Subscriber 进行流量控制. 
         func receive(_ input: Int) -> Subscribers.Demand {
             print("Received value", input)
-            
             switch input {
             case 1:
                 return .max(2) // 1
@@ -319,6 +333,7 @@ example(of: "Type erasure") {
     let subject = PassthroughSubject<Int, Never>()
     
     // 2
+    // AnyPublisher 内部会有一个成员变量, 完整的保留类型信息, 但这是内部实现. 
     let publisher = subject.eraseToAnyPublisher()
     
     // 3
