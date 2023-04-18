@@ -53,6 +53,7 @@ example(of: "tryMap") {
   // 1
   Just("Directory name that does not exist")
     // 2
+    // 所有的 Try 开头, 最终都会使得后续丢失 Error 信息. 
     .tryMap { try FileManager.default.contentsOfDirectory(atPath: $0) }
     // 3
     .sink(receiveCompletion: { print($0) },
@@ -71,6 +72,7 @@ example(of: "flatMap") {
           return String(UnicodeScalar(code) ?? " ")
         }
         // 3
+        // 这里面的方法, 是原本的 Sequence 方法, 和 Combine 没有关系. 
         .joined()
     )
     // 4
@@ -80,9 +82,9 @@ example(of: "flatMap") {
   // 5
   [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33]
     .publisher
-    .collect()
+    .collect() // 会将之前的数据, 变化成为一个数组. 
     // 6
-    .flatMap(decode)
+    .flatMap(decode) // Decode 
     // 7
     .sink(receiveValue: { print($0) })
     .store(in: &subscriptions)
@@ -92,7 +94,7 @@ example(of: "replaceNil") {
   // 1
   ["A", nil, "C"].publisher
     .eraseToAnyPublisher()
-    .replaceNil(with: "-") // 2
+    .replaceNil(with: "-") // 其实就是 Map 的再次使用
     .sink(receiveValue: { print($0) }) // 3
     .store(in: &subscriptions)
 }
@@ -120,6 +122,7 @@ example(of: "scan") {
 
   // 3
   august2019
+  // 和 Reduce 一样, 不过是每次接受数据, 计算完毕之后, 都像下游进行输出. 
     .scan(50) { latest, current in
       max(0, latest + current)
     }
