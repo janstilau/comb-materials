@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 
+// 纯功能性代码的集合. 
 extension UIImage {
   
   static func collage(images: [UIImage], size: CGSize) -> UIImage {

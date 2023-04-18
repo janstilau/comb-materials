@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 
 struct MainView: View {
+  // CollageNeueModel 是真正的 ViewModel.
   @EnvironmentObject var modelSubject: CollageNeueModel
   
   // ViewState, 不应在 Model 中进行存储, 直接在 View 中使用 @State 的方式进行数据的存储.

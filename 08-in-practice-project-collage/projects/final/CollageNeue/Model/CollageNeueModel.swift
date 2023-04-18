@@ -23,7 +23,7 @@ class CollageNeueModel: ObservableObject {
   
   func bindMainView() {
     // 1
-    // images 的修改, 会触发后续信号, 后触发 $imagePreview 的修改. 但是这个逻辑很怪, 不是一个合理的数据流转的途径. 
+    // images 的修改, 会触发后续信号, 后触发 $imagePreview 的修改. 但是这个逻辑很怪, 不是一个合理的数据流转的途径.
     images
       .handleEvents(receiveOutput: { [weak self] photos in
         self?.updateUISubject.send(photos.count)
@@ -92,7 +92,7 @@ class CollageNeueModel: ObservableObject {
     
   }
   
-  // 业务逻辑还是要写在 ViewModel 里面的, 这是 Controller 层的责任. 
+  // 业务逻辑还是要写在 ViewModel 里面的, 这是 Controller 层的责任.
   func loadPhotos() -> PHFetchResult<PHAsset> {
     let allPhotosOptions = PHFetchOptions()
     allPhotosOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
@@ -108,9 +108,9 @@ class CollageNeueModel: ObservableObject {
       contentMode: .aspectFill,
       options: nil,
       resultHandler: { image, _ in
-      guard let image = image else { return }
-      self.thumbnails[asset.localIdentifier] = image
-    })
+        guard let image = image else { return }
+        self.thumbnails[asset.localIdentifier] = image
+      })
   }
   
   // 当选择图片页面的图片被点击之后, 调用这里的方法.

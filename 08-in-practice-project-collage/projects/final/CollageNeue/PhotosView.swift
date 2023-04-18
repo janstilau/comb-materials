@@ -3,7 +3,9 @@ import Photos
 import Combine
 
 struct PhotosView: View {
+  
   @EnvironmentObject var modelSubject: CollageNeueModel
+  
   @Environment(\.presentationMode) var presentationMode
   
   let columns: [GridItem] = [.init(.adaptive(minimum: 100, maximum: 200))]

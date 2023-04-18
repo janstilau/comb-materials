@@ -4,6 +4,7 @@ import Photos
 
 import Combine
 
+// 使用这种方式, 要进行特定类型 Error 的定义, 太繁琐了. 
 class PhotoWriter {
   enum Error: Swift.Error {
     case couldNotSavePhoto
